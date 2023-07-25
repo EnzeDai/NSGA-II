@@ -18,7 +18,7 @@ def nsga_2_optimization():
     # generation iteration
     for i in range(gen):
         pool_size = round(pop/2)        # mating pool size
-        tour_players = 2                # number of tournament players
+        tour_players = 2                # number of tournament players, 
         parent_chromosome = tournament_selection(chromosome, pool_size, tour_players)
 
         mu = 20    # 交叉和变异算法的分布指数
@@ -103,20 +103,49 @@ def non_domination_sort_mod(chromosome, M, V):
 
 '''
 Tournament selection of parents suitable for reproduction
-
+    tour_size - the number of individuals are selected per round to participate the tournament
+    pool_size - the number of individuals need to select from parent population
 '''
 def tournament_selection(chromosome, pool_size, tour_size):
-    pop, variables = chromosome.shape
+    pop, variables = chromosome.shape[0], chromosome.shape[1]
     rank = variables - 1
-    distance = variables
+    crowd = variables
 
-    # Tournament selection
+    off_pop = np.zeros((pool_size, variables))  # initial the offspring populaiton
+
+    # let the tournament begin
     for i in range(pool_size):
-        
-
+        player = np.zeros(tour_size, dtype=int)
+        for j in range(tour_size):
+            player[j] = int(np.round(pop * np.random.rand())) # [0, pop]
+            if player[j] == 0:
+                player[j] == 1
+            if j > 0:   # in case of the same player
+                while np.any(player[0:j] == player[j]):
+                    player[j] = int(np.round(pop * np.random.rand()))
+                    if player[j] == 0:
+                        player[j] == 1
     
+        player_rank = np.zeros(tour_size)
+        player_crowd = np.zeros(tour_size)
 
-    return
+        for j in range(tour_size):
+            player_rank[j] = chromosome[player[j] - 1, rank]
+            player_crowd[j] = chromosome[player[j] - 1, crowd]
+
+        min_rank = np.where(player_rank == np.min(player_rank))[0] # find rank 1, the champion
+
+        # if more than 1 champion, compare the crowding degree and select higher score
+        if len(min_rank) != 1:
+            max_crowd = np.where(player_crowd[min_rank] == np.max(player_crowd[min_rank]))[0]
+            if len(max_crowd) != 1:
+                max_crowd = max_crowd[0]
+            off_pop[i, :] = chromosome[player[min_rank[max_crowd]] - 1, :]
+        else:
+            off_pop[i, :] = chromosome[player[min_rank[0]] - 1, :]
+
+
+    return off_pop
 
 # 进行交叉变异产生子代 该代码中使用模拟二进制交叉和多项式变异 采用实数编码
 def genetic_operator():
