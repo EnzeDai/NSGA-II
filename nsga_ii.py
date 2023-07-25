@@ -107,9 +107,9 @@ Tournament selection of parents suitable for reproduction
     pool_size - the number of individuals need to select from parent population
 '''
 def tournament_selection(chromosome, pool_size, tour_size):
-    pop, variables = chromosome.shape[0], chromosome.shape[1]
-    rank = variables - 1
-    crowd = variables
+    pop, variables = chromosome.shape   # N x K
+    rank = variables - 2                # rank index
+    crowd = variables - 1               # crowding degree index
 
     off_pop = np.zeros((pool_size, variables))  # initial the offspring populaiton
 
